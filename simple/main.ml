@@ -5,6 +5,7 @@ exception EvaluateError of string
 let string_of_value = function
     | VInt i -> string_of_int i
     | VBool b -> if b then "true" else "false"
+    | VFun _ -> "fun"
 
 let int_of_value = function
     | VInt i -> i
@@ -18,6 +19,8 @@ let rec evaluate env = function
     | EInt i -> VInt i
     | EBool b -> VBool b
     | EVar v -> List.assoc v env
+    | EFun (v, e) -> VFun (v, env, e)
+    | EApp (e1, e2) -> apply env e1 e2
     | ELet (v, e1, e2) -> evaluate ((v, evaluate env e1) :: env) e2
     | EAdd (e1, e2) ->
         VInt (int_of_value (evaluate env e1) + int_of_value (evaluate env e2))
@@ -45,6 +48,10 @@ let rec evaluate env = function
             evaluate env e2
         else
             evaluate env e3
+and apply env e1 e2 =
+    match evaluate env e1 with
+        | VFun (vf, envf, ef) -> evaluate ((vf, evaluate env e2) :: envf) ef
+        | _ -> raise (EvaluateError "apply (not function)")
 
 let _ =
     let rec loop env =

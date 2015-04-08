@@ -1,6 +1,7 @@
 {
     open Parser
     exception EndOfInput
+    exception IllegalCharacter
 }
 
 let lower = ['a' - 'z']
@@ -24,8 +25,10 @@ rule tokenize = parse
     | ')' { RPAR }
     | "<=" { LE }
     | ">=" { GE }
+    | "->" { ARROW }
     | "let" { LET }
     | "in" { IN }
+    | "fun" { FUN }
     | "if" { IF }
     | "then" { THEN }
     | "else" { ELSE }
@@ -33,3 +36,4 @@ rule tokenize = parse
     | "false" { BOOL false }
     | lower (var)* as v { VAR v }
     | eof { raise EndOfInput }
+    | _ { raise IllegalCharacter }

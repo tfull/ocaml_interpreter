@@ -15,11 +15,14 @@ type expression =
     | EEq of expression * expression
     | EIf of expression * expression * expression
     | ELet of string * expression * expression
+    | EFun of string * expression
+    | EApp of expression * expression
+and value = 
+    | VInt of int
+    | VBool of bool
+    | VFun of string * environment * expression
+and environment = (string * value) list
 
 type command =
     | CLet of string * expression
     | CExp of expression
-
-type value = 
-    | VInt of int
-    | VBool of bool

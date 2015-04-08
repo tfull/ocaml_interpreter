@@ -11,6 +11,7 @@
 %token IF THEN ELSE
 %token LPAR RPAR
 %token LET IN
+%token FUN ARROW
 %token EOS
 
 %start parse
@@ -21,11 +22,20 @@ parse:
     | command EOS { $1 }
 command:
     | LET VAR EQUAL state { CLet ($2, $4) }
+    | LET VAR funlet { CLet ($2, $3) }
     | state { CExp $1 }
 state:
     | LET VAR EQUAL state IN state { ELet ($2, $4, $6) }
+    | LET VAR funlet IN state { ELet ($2, $3, $5) }
     | IF state THEN state ELSE state { EIf ($2, $4, $6) }
+    | FUN funstate { $2 }
     | s { $1 }
+funlet:
+    | VAR funlet { EFun ($1, $2) }
+    | VAR EQUAL state { EFun ($1, $3) }
+funstate:
+    | VAR funstate { EFun ($1, $2) }
+    | VAR ARROW state { EFun ($1, $3) }
 s:
     | a EQUAL a { EEq ($1, $3) }
     | a LT a { ELt ($1, $3) }
@@ -46,8 +56,11 @@ c:
     | MINUS c { EMinus $2 }
     | d { $1 }
 d:
+    | d e { EApp ($1, $2) }
+    | e { $1 }
+e:
     | VAR { EVar $1 }
     | INT { EInt $1 }
     | BOOL { EBool $1 }
-    | LPAR s RPAR { $2 }
+    | LPAR state RPAR { $2 }
 ;
