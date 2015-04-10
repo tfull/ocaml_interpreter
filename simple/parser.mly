@@ -1,11 +1,12 @@
 %{
     open Syntax
+    let parse_error s = raise (ParseError s)
 %}
 
 %token <int> INT
 %token <bool> BOOL
 %token <string> VAR
-%token PLUS MINUS STAR SLASH PERCENT
+%token PLUS MINUS STAR SLASH MOD
 %token LT GT EQUAL
 %token LE GE
 %token IF THEN ELSE
@@ -46,7 +47,7 @@ s:
 a:
     | a STAR b { EMul ($1, $3) }
     | a SLASH b { EDiv ($1, $3) }
-    | a PERCENT b { EMod ($1, $3) }
+    | a MOD b { EMod ($1, $3) }
     | b { $1 }
 b:
     | b PLUS c { EAdd ($1, $3) }

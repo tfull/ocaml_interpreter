@@ -1,4 +1,4 @@
-SOURCES = syntax.ml parser.mly tokenizer.mll main.ml
-RESULT = main
+SOURCES = syntax.ml parser.mly tokenizer.mll evaluator.ml main.ml
+RESULT = my_caml
 
 include OCamlMakefile

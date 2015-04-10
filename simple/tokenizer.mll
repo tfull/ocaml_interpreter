@@ -1,7 +1,6 @@
 {
+    open Syntax
     open Parser
-    exception EndOfInput
-    exception IllegalCharacter
 }
 
 let lower = ['a' - 'z']
@@ -17,7 +16,6 @@ rule tokenize = parse
     | '-' { MINUS }
     | '*' { STAR }
     | '/' { SLASH }
-    | '%' { PERCENT }
     | '<' { LT }
     | '>' { GT }
     | '=' { EQUAL }
@@ -26,6 +24,7 @@ rule tokenize = parse
     | "<=" { LE }
     | ">=" { GE }
     | "->" { ARROW }
+    | "mod" { MOD }
     | "let" { LET }
     | "in" { IN }
     | "fun" { FUN }
@@ -35,5 +34,5 @@ rule tokenize = parse
     | "true" { BOOL true }
     | "false" { BOOL false }
     | lower (var)* as v { VAR v }
-    | eof { raise EndOfInput }
-    | _ { raise IllegalCharacter }
+    | eof { raise ExitException }
+    | _ { raise (TokenizeError "illegal character" ) }

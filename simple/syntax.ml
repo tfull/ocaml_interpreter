@@ -26,3 +26,13 @@ and environment = (string * value) list
 type command =
     | CLet of string * expression
     | CExp of expression
+
+let string_of_value = function
+    | VInt i -> string_of_int i
+    | VBool b -> if b then "true" else "false"
+    | VFun _ -> "fun"
+
+exception ExitException
+exception ParseError of string
+exception TokenizeError of string
+exception EvaluateError of string
