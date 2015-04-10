@@ -8,10 +8,14 @@ let bool_of_value = function
     | VBool b -> b
     | _ -> raise (EvaluateError "bool conversion of other type")
 
+let rec search s = function
+    | [] -> raise (EvaluateError ("no such variable " ^ s))
+    | (k, v) :: xs -> if s = k then v else search s xs
+
 let rec evaluate env = function
     | EInt i -> VInt i
     | EBool b -> VBool b
-    | EVar v -> List.assoc v env
+    | EVar v -> search v env
     | EFun (v, e) -> VFun (v, env, e)
     | EApp (e1, e2) -> apply env e1 e2
     | ELet (v, e1, e2) -> evaluate ((v, evaluate env e1) :: env) e2
@@ -49,7 +53,9 @@ let rec evaluate env = function
             evaluate env e2
         else
             evaluate env e3
+    | ERec (f, v, e) -> VRec (f, v, env, e)
 and apply env e1 e2 =
     match evaluate env e1 with
         | VFun (vf, envf, ef) -> evaluate ((vf, evaluate env e2) :: envf) ef
+        | VRec (f, v, c, e) as funp -> evaluate ((v, evaluate env e2) :: (f, funp) :: c) e
         | _ -> raise (EvaluateError "apply (not function)")

@@ -17,10 +17,12 @@ type expression =
     | ELet of string * expression * expression
     | EFun of string * expression
     | EApp of expression * expression
+    | ERec of string * string * expression
 and value = 
     | VInt of int
     | VBool of bool
     | VFun of string * environment * expression
+    | VRec of string * string * environment * expression
 and environment = (string * value) list
 
 type command =
@@ -30,7 +32,8 @@ type command =
 let string_of_value = function
     | VInt i -> string_of_int i
     | VBool b -> if b then "true" else "false"
-    | VFun _ -> "fun"
+    | VFun _ -> "function"
+    | VRec _ -> "recursive function"
 
 exception ExitException
 exception ParseError of string

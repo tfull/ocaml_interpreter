@@ -11,7 +11,7 @@
 %token LE GE
 %token IF THEN ELSE
 %token LPAR RPAR
-%token LET IN
+%token LET REC IN
 %token FUN ARROW
 %token EOS
 
@@ -24,9 +24,11 @@ parse:
 command:
     | LET VAR EQUAL state { CLet ($2, $4) }
     | LET VAR funlet { CLet ($2, $3) }
+    | LET REC VAR VAR reclet { CLet ($3, ERec($3, $4, $5)) }
     | state { CExp $1 }
 state:
     | LET VAR EQUAL state IN state { ELet ($2, $4, $6) }
+    | LET REC VAR VAR reclet IN state { ELet ($3, ERec($3, $4, $5), $7) }
     | LET VAR funlet IN state { ELet ($2, $3, $5) }
     | IF state THEN state ELSE state { EIf ($2, $4, $6) }
     | FUN funstate { $2 }
@@ -37,6 +39,9 @@ funlet:
 funstate:
     | VAR funstate { EFun ($1, $2) }
     | VAR ARROW state { EFun ($1, $3) }
+reclet:
+    | VAR reclet { EFun ($1, $2) }
+    | EQUAL state { $2 }
 s:
     | a EQUAL a { EEq ($1, $3) }
     | a LT a { ELt ($1, $3) }

@@ -26,6 +26,7 @@ rule tokenize = parse
     | "->" { ARROW }
     | "mod" { MOD }
     | "let" { LET }
+    | "rec" { REC }
     | "in" { IN }
     | "fun" { FUN }
     | "if" { IF }
