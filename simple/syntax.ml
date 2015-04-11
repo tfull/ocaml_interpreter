@@ -22,14 +22,24 @@ type expression =
     | ECons of expression * expression
     | EPair of expression * expression
     | ETriple of expression * expression * expression
+    | EMatch of expression * (pattern * expression) list
 and value = 
     | VInt of int
     | VBool of bool
     | VFun of string * environment * expression
     | VRec of string * string * environment * expression
-    | VList of value list
+    | VNil
+    | VCons of value * value
     | VPair of value * value
     | VTriple of value * value * value
+and pattern =
+    | PInt of int
+    | PBool of bool
+    | PPair of pattern * pattern
+    | PTriple of pattern * pattern * pattern
+    | PNil
+    | PCons of pattern * pattern
+    | PVar of string
 and environment = (string * value) list
 
 type command =
@@ -41,13 +51,14 @@ let rec string_of_value = function
     | VBool b -> if b then "true" else "false"
     | VFun _ -> "function"
     | VRec _ -> "recursive function"
-    | VList [] -> "[]"
-    | VList (x :: xs) -> "[" ^ string_of_value x ^ string_of_value_list xs ^ "]"
+    | VNil -> "[]"
+    | VCons (x, y) -> "[" ^ string_of_value x ^ string_of_value_list y ^ "]"
     | VPair (v1, v2) -> "(" ^ string_of_value v1 ^ ", " ^ string_of_value v2 ^ ")"
     | VTriple (v1, v2, v3) -> "(" ^ string_of_value v1 ^ ", " ^ string_of_value v2 ^ ", " ^ string_of_value v3 ^ ")"
 and string_of_value_list = function
-    | [] -> ""
-    | x :: xs -> "; " ^ string_of_value x ^ string_of_value_list xs
+    | VNil -> ""
+    | VCons (x, xs) -> "; " ^ string_of_value x ^ string_of_value_list xs
+    | _ -> raise (Failure "string_of_value_list")
 
 exception ExitException
 exception ParseError of string

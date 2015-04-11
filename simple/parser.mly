@@ -15,6 +15,7 @@
 %token FUN ARROW
 %token SCOLON LSQ RSQ CONS
 %token COMMA
+%token MATCH WITH VERTICAL
 %token EOS
 
 %start parse
@@ -33,8 +34,37 @@ state:
     | LET REC VAR VAR reclet IN state { ELet ($3, ERec($3, $4, $5), $7) }
     | LET VAR funlet IN state { ELet ($2, $3, $5) }
     | IF state THEN state ELSE state { EIf ($2, $4, $6) }
+    | MATCH state WITH match_s { EMatch ($2, $4) }
     | FUN funstate { $2 }
     | s { $1 }
+match_s:
+    | VERTICAL pattern_s ARROW state_m match_s { ($2, $4) :: $5 }
+    | VERTICAL pattern_s ARROW state { [($2, $4)] }
+state_m:
+    | LET VAR EQUAL state IN state_m { ELet ($2, $4, $6) }
+    | LET REC VAR VAR reclet IN state_m { ELet ($3, ERec($3, $4, $5), $7) }
+    | LET VAR funlet IN state_m { ELet ($2, $3, $5) }
+    | IF state THEN state ELSE state_m { EIf ($2, $4, $6) }
+    | FUN funstate_m { $2 }
+    | s { $1 }
+funstate_m:
+    | VAR funstate_m { EFun ($1, $2) }
+    | VAR ARROW state_m { EFun ($1, $3) }
+pattern_s:
+    | pattern_a CONS pattern_s { PCons ($1, $3) }
+    | pattern_a { $1 }
+pattern_a:
+    | INT { PInt $1 }
+    | BOOL { PBool $1 }
+    | VAR { PVar $1 }
+    | LSQ RSQ { PNil }
+    | LSQ pattern_ls RSQ { $2 }
+    | LPAR pattern_s COMMA pattern_s RPAR { PPair ($2, $4) }
+    | LPAR pattern_s COMMA pattern_s COMMA pattern_s RPAR { PTriple ($2, $4, $6) }
+    | LPAR pattern_s RPAR { $2 }
+pattern_ls:
+    | pattern_s SCOLON pattern_ls { PCons ($1, $3) }
+    | pattern_s { PCons ($1, PNil) }
 funlet:
     | VAR funlet { EFun ($1, $2) }
     | VAR EQUAL state { EFun ($1, $3) }
@@ -55,13 +85,13 @@ ss:
     | a CONS ss { ECons ($1, $3) }
     | a { $1 }
 a:
-    | a STAR b { EMul ($1, $3) }
-    | a SLASH b { EDiv ($1, $3) }
-    | a MOD b { EMod ($1, $3) }
+    | a PLUS b { EAdd ($1, $3) }
+    | a MINUS b { ESub ($1, $3) }
     | b { $1 }
 b:
-    | b PLUS c { EAdd ($1, $3) }
-    | b MINUS c { ESub ($1, $3) }
+    | b STAR c { EMul ($1, $3) }
+    | b SLASH c { EDiv ($1, $3) }
+    | b MOD c { EMod ($1, $3) }
     | c { $1 }
 c:
     | MINUS c { EMinus $2 }

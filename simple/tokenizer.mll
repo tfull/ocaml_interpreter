@@ -25,6 +25,7 @@ rule tokenize = parse
     | ']' { RSQ }
     | ';' { SCOLON }
     | ',' { COMMA }
+    | '|' { VERTICAL }
     | "::" { CONS }
     | "<=" { LE }
     | ">=" { GE }
@@ -37,6 +38,8 @@ rule tokenize = parse
     | "if" { IF }
     | "then" { THEN }
     | "else" { ELSE }
+    | "match" { MATCH }
+    | "with" { WITH }
     | "true" { BOOL true }
     | "false" { BOOL false }
     | lower (var)* as v { VAR v }
