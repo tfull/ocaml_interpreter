@@ -13,6 +13,8 @@
 %token LPAR RPAR
 %token LET REC IN
 %token FUN ARROW
+%token SCOLON LSQ RSQ CONS
+%token COMMA
 %token EOS
 
 %start parse
@@ -48,6 +50,9 @@ s:
     | a GT a { EGt ($1, $3) }
     | a LE a { ELe ($1, $3) }
     | a GE a { EGe ($1, $3) }
+    | ss { $1 }
+ss:
+    | a CONS ss { ECons ($1, $3) }
     | a { $1 }
 a:
     | a STAR b { EMul ($1, $3) }
@@ -65,8 +70,15 @@ d:
     | d e { EApp ($1, $2) }
     | e { $1 }
 e:
+    | LSQ RSQ { ENil }
+    | LSQ ls RSQ { $2 }
     | VAR { EVar $1 }
     | INT { EInt $1 }
     | BOOL { EBool $1 }
     | LPAR state RPAR { $2 }
+    | LPAR state COMMA state RPAR { EPair ($2, $4) }
+    | LPAR state COMMA state COMMA state RPAR { ETriple ($2, $4, $6) }
+ls:
+    | state SCOLON ls { ECons ($1, $3) }
+    | state { ECons ($1, ENil) }
 ;

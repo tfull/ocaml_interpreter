@@ -21,6 +21,11 @@ rule tokenize = parse
     | '=' { EQUAL }
     | '(' { LPAR }
     | ')' { RPAR }
+    | '[' { LSQ }
+    | ']' { RSQ }
+    | ';' { SCOLON }
+    | ',' { COMMA }
+    | "::" { CONS }
     | "<=" { LE }
     | ">=" { GE }
     | "->" { ARROW }

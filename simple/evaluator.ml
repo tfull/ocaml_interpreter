@@ -8,6 +8,10 @@ let bool_of_value = function
     | VBool b -> b
     | _ -> raise (EvaluateError "bool conversion of other type")
 
+let list_of_value = function
+    | VList l -> l
+    | _ -> raise (EvaluateError "list conversion of other type")
+
 let rec search s = function
     | [] -> raise (EvaluateError ("no such variable " ^ s))
     | (k, v) :: xs -> if s = k then v else search s xs
@@ -16,6 +20,10 @@ let rec evaluate env = function
     | EInt i -> VInt i
     | EBool b -> VBool b
     | EVar v -> search v env
+    | ENil -> VList []
+    | EPair (e1, e2) -> VPair (evaluate env e1, evaluate env e2)
+    | ETriple (e1, e2, e3) -> VTriple (evaluate env e1, evaluate env e2, evaluate env e3)
+    | ECons (e1, e2) -> let v2 = list_of_value (evaluate env e2) in VList (evaluate env e1 :: v2)
     | EFun (v, e) -> VFun (v, env, e)
     | EApp (e1, e2) -> apply env e1 e2
     | ELet (v, e1, e2) -> evaluate ((v, evaluate env e1) :: env) e2
