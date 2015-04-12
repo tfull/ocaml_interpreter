@@ -26,6 +26,9 @@ rule tokenize = parse
     | ';' { SCOLON }
     | ',' { COMMA }
     | '|' { VERTICAL }
+    | "||" { OR }
+    | "&&" { AND }
+    | "!=" { NEQ }
     | "::" { CONS }
     | "<=" { LE }
     | ">=" { GE }
