@@ -86,8 +86,6 @@ let rec evaluate env = function
         VBool (int_of_value (evaluate env e1) >= int_of_value (evaluate env e2))
     | EEq (e1, e2) ->
         VBool (int_of_value (evaluate env e1) = int_of_value (evaluate env e2))
-    | ENe (e1, e2) ->
-        VBool (int_of_value (evaluate env e1) != int_of_value (evaluate env e2))
     | EIf (e1, e2, e3) ->
         if bool_of_value (evaluate env e1) then
             evaluate env e2

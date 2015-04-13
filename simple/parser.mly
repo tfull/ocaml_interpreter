@@ -8,7 +8,7 @@
 %token <string> VAR
 %token PLUS MINUS STAR SLASH MOD
 %token LT GT EQUAL
-%token LE GE NEQ
+%token LE GE
 %token AND OR
 %token IF THEN ELSE
 %token LPAR RPAR
@@ -87,7 +87,6 @@ lg2:
     | ss GT ss { EGt ($1, $3) }
     | ss LE ss { ELe ($1, $3) }
     | ss GE ss { EGe ($1, $3) }
-    | ss NEQ ss { ENe ($1, $3) }
     | ss { $1 }
 ss:
     | a CONS ss { ECons ($1, $3) }

@@ -77,6 +77,29 @@ let (--) xs ys =
     in
     f xs ys
 
+let rec gather_pattern_constraints i = function
+    | PInt _ -> (TInt, [], i, [])
+    | PBool _ -> (TBool, [], i, [])
+    | PVar a ->
+        let alpha = TVar i in
+        (alpha, [], i + 1, [(a, ([], alpha))])
+    | PNil ->
+        let alpha = TList (TVar i) in
+        (alpha, [], i + 1, [])
+    | PCons (p1, p2) ->
+        let (t1, c1, i1, env1) = gather_pattern_constraints i p1 in
+        let (t2, c2, i2, env2) = gather_pattern_constraints i1 p2 in
+        (t2, (TList t1, t2) :: c1 @ c2, i2, env1 @ env2)
+    | PPair (p1, p2) ->
+        let (t1, c1, i1, env1) = gather_pattern_constraints i p1 in
+        let (t2, c2, i2, env2) = gather_pattern_constraints i1 p2 in
+        (TPair (t1, t2), c1 @ c2, i2, env1 @ env2)
+    | PTriple (p1, p2, p3) ->
+        let (t1, c1, i1, env1) = gather_pattern_constraints i p1 in
+        let (t2, c2, i2, env2) = gather_pattern_constraints i1 p2 in
+        let (t3, c3, i3, env3) = gather_pattern_constraints i2 p3 in
+        (TTriple (t1, t2, t3), c1 @ c2 @ c3, i3, env1 @ env2 @ env3)
+
 let rec gather_constraints env i = function
     | EInt _ -> (TInt, [], i)
     | EBool _ -> (TBool, [], i)
@@ -124,10 +147,6 @@ let rec gather_constraints env i = function
         let (t1, c1, i1) = gather_constraints env i e1 in
         let (t2, c2, i2) = gather_constraints env i1 e2 in
         (TBool, (t1, TInt) :: (t2, TInt) :: c1 @ c2, i2)
-    | ENe (e1, e2) ->
-        let (t1, c1, i1) = gather_constraints env i e1 in
-        let (t2, c2, i2) = gather_constraints env i1 e2 in
-        (TBool, (t1, TInt) :: (t2, TInt) :: c1 @ c2, i2)
     | EIf (e1, e2, e3) ->
         let (t1, c1, i1) = gather_constraints env i e1 in
         let (t2, c2, i2) = gather_constraints env i1 e2 in
@@ -145,7 +164,7 @@ let rec gather_constraints env i = function
     | ERec (name, v, e) ->
         let alpha = TVar i in
         let beta = TVar (i + 1) in
-        let gamma = (name, ([], (TFun (alpha, beta)))) :: env in
+        let gamma = (name, ([], TFun (alpha, beta))) :: env in
         let (t, c, j) = gather_constraints ((v, ([], alpha)) :: gamma) (i + 2) e in
         (TFun (alpha, beta), (beta, t) :: c, j)
     | ELet (v, e1, e2) ->
@@ -170,7 +189,18 @@ let rec gather_constraints env i = function
         let (t2, c2, i2) = gather_constraints env i1 e2 in
         let (t3, c3, i3) = gather_constraints env i2 e3 in
         (TTriple (t1, t2, t3), c1 @ c2 @ c3, i3)
-    | _ -> raise (InferError "not implemented 2")
+    | EMatch (e, xs) ->
+        let (t0, c0, i0) = gather_constraints env i e in
+        let beta = TVar i0 in
+        let (t1, c1, i1) = pattern_match env (i0 + 1) t0 beta xs in
+        (t1, c0 @ c1, i1)
+and pattern_match env i alpha beta = function
+    | [] -> (beta, [], i)
+    | (p, e) :: xs ->
+        let (t1, c1, i1, ad) = gather_pattern_constraints i p in
+        let (t2, c2, i2) = gather_constraints (ad @ env) i1 e in
+        let (_, c3, i3) = pattern_match env i2 alpha beta xs in
+        (beta, (alpha, t1) :: (beta, t2) :: c1 @ c2 @ c3, i3)
 and unify = function
     | [] -> []
     | (TInt, TInt) :: xs -> unify xs
@@ -179,7 +209,7 @@ and unify = function
         unify ((a1, a2) :: (b1, b2) :: xs)
     | (TVar a, t) :: xs | (t, TVar a) :: xs ->
         let alpha = TVar a in
-        if occur alpha t then
+        if not (alpha = t) && occur alpha t then
             raise (InferError "recursive type reference")
         else
             (alpha, t) :: unify (List.map (fun (a, b) -> (substitute a alpha t, substitute b alpha t)) xs)

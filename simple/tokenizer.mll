@@ -28,7 +28,6 @@ rule tokenize = parse
     | '|' { VERTICAL }
     | "||" { OR }
     | "&&" { AND }
-    | "!=" { NEQ }
     | "::" { CONS }
     | "<=" { LE }
     | ">=" { GE }

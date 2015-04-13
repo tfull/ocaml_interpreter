@@ -12,7 +12,6 @@ type expression =
     | ELe of expression * expression
     | EGt of expression * expression
     | EGe of expression * expression
-    | ENe of expression * expression
     | EEq of expression * expression
     | EIf of expression * expression * expression
     | ELet of string * expression * expression
